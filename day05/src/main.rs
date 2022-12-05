@@ -1,23 +1,15 @@
-use std::env;
-use std::fs::File;
-use std::io::{prelude::*, BufReader, Result};
+use std::str::FromStr;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let file = File::open(&args[1]).expect("File not found");
-    let reader = BufReader::new(file);
+    let input = include_str!("input.txt");
 
-    let lines: Vec<Line> = reader
-        .lines()
-        .map(|x: Result<String>| x.expect("Error when reading line"))
-        .map(|s: String| Line::from(s.as_str()))
-        .collect();
-
-    println!("Task 1 = {}", task1(lines.as_slice()));
-    println!("Task 2 = {}", task2(lines.as_slice()));
+    println!("Problem 1: {}", problem1(input));
+    println!("Problem 2: {}", problem2(input));
 }
 
-fn task1(lines: &[Line]) -> usize {
+fn problem1(input: &str) -> usize {
+    let lines: Vec<Line> = input.lines().flat_map(|s| s.parse::<Line>()).collect();
+
     let width = 1 + lines
         .iter()
         .map(|line: &Line| std::cmp::max(line.a.x, line.b.x))
@@ -49,22 +41,16 @@ fn task1(lines: &[Line]) -> usize {
         }
     }
 
-    let mut count = 0;
-
-    //dump_matrix(&matrix, width, height);
-
-    for x in 0..width {
-        for y in 0..height {
-            if matrix[x][y] >= 2 {
-                count += 1;
-            }
-        }
-    }
-
-    count
+    matrix
+        .iter()
+        .flat_map(|m| m.iter())
+        .filter(|&&n| n >= 2)
+        .count()
 }
 
-fn task2(lines: &[Line]) -> usize {
+fn problem2(input: &str) -> usize {
+    let lines: Vec<Line> = input.lines().flat_map(|s| s.parse::<Line>()).collect();
+
     let width = 1 + lines
         .iter()
         .map(|line: &Line| std::cmp::max(line.a.x, line.b.x))
@@ -105,19 +91,20 @@ fn task2(lines: &[Line]) -> usize {
         }
     }
 
-    let mut count = 0;
+    matrix
+        .iter()
+        .flat_map(|m| m.iter())
+        .filter(|&&n| n >= 2)
+        .count()
+}
 
-    //dump_matrix(&matrix, width, height);
-
-    for x in 0..width {
-        for y in 0..height {
-            if matrix[x][y] >= 2 {
-                count += 1;
-            }
-        }
-    }
-
-    count
+#[test]
+fn test_problem1() {
+    assert_eq!(problem1(include_str!("test_input.txt")), 5)
+}
+#[test]
+fn test_problem2() {
+    assert_eq!(problem2(include_str!("test_input.txt")), 12)
 }
 
 #[derive(Debug)]
@@ -141,39 +128,28 @@ impl Line {
     }
 }
 
-impl From<&str> for Line {
-    fn from(s: &str) -> Line {
-        let (a_str, b_str) = s.split_once(" -> ").expect("Invalid format");
-        let a = Point::from(a_str);
-        let b = Point::from(b_str);
+impl FromStr for Line {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (a, b) = s.split_once(" -> ").expect("Invalid format");
+        let (a, b) = (a.parse::<Point>().unwrap(), b.parse::<Point>().unwrap());
         if a.x > b.x {
-            Line { a: b, b: a }
+            Ok(Line { a: b, b: a })
         } else {
-            Line { a: a, b: b }
+            Ok(Line { a, b })
         }
     }
 }
 
-impl From<&str> for Point {
-    fn from(s: &str) -> Point {
+impl FromStr for Point {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (x_str, y_str) = s.split_once(',').expect("Expected ',' char");
-        Point {
+        Ok(Point {
             x: x_str.parse().expect("Invalid x coordinate"),
             y: y_str.parse().expect("Invalid y coordinate"),
-        }
+        })
     }
-}
-
-fn dump_matrix(matrix: &Vec<Vec<usize>>, width: usize, height: usize) {
-    for x in 0..width {
-        for y in 0..height {
-            if matrix[y][x] == 0 {
-                print!(". ");
-            } else {
-                print!("{} ", matrix[y][x]);
-            }
-        }
-        print!("\n");
-    }
-    std::io::stdout().flush();
 }

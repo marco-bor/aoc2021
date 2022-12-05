@@ -1,25 +1,24 @@
-use std::env;
-use std::fs::File;
-use std::io::{prelude::*, BufReader};
-
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let file = File::open(&args[1]).expect("File not found");
-    let reader = BufReader::new(file);
+    let input = include_str!("input.txt");
 
-    let lines: Vec<String> = reader
-        .lines()
-        .map(|x| x.expect("Error when reading line"))
-        .collect();
-
-    println!("Task 1 = {}", task1());
-    println!("Task 2 = {}", task2());
+    println!("Problem 1: {}", task1(input));
+    println!("Problem 2: {}", task2(input));
 }
 
-fn task1() -> usize {
+fn problem1(input: &str) -> usize {
     0
 }
 
-fn task2() -> usize {
+fn problem2(input: &str) -> usize {
     0
+}
+
+#[test]
+fn test_problem1() {
+    assert_eq!(problem1(include_str!("testdata.txt")), 0);
+}
+
+#[test]
+fn test_problem2() {
+    assert_eq!(problem2(include_str!("testdata.txt")), 0);
 }
